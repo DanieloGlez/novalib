@@ -1,9 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from model import *
+from util import config
 
 
-engine = create_engine('postgresql://postgres:postgres@localhost:5432/bd_liberacion')
+# create engine and season
+engine = create_engine(
+    f'postgresql://{config["db.username"]}:{config["db.password"]}@{config["db.host"]}:{config["db.port"]}/{config["db"]}')
 Session = sessionmaker(bind=engine)
 session = Session()
 

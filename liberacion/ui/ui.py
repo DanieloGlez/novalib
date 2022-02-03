@@ -1,4 +1,4 @@
-import sys
+import sys, os, util
 from PyQt5 import QtCore, QtWidgets, uic
 from service import UsuarioService
 
@@ -7,47 +7,29 @@ class Controller:
     def __init__(self):
         pass
 
-    def show_login(self):
-        self.login = LoginWindow()
-        self.login.switch_main_menu.connect(self.show_main_menu)
-        self.login.show()
-
-    def show_main_menu(self):
-        self.main_menu = MainMenu()
-        self.main_menu.switch_liberacion.connect(self.show_liberacion_menu)
-        self.main_menu.switch_administracion.connect(self.show_administracion_menu)
-        self.main_menu.switch_ajustes.connect(self.show_ajustes_menu)
-
-        self.main_menu.show()
-
-    def show_liberacion_menu(self):
-        self.liberacion_menu = LiberacionMenu()
-        self.liberacion_menu.switch_back.connect(self.show_main_menu)
-        self.liberacion_menu.show()        
+    def show_main_window(self):
+        self.main_window = MainContainer()
+        self.main_window.show()
 
 
-    def show_administracion_menu(self):
-        self.administracion_menu = AdministracionMenu()
-        self.administracion_menu.switch_back.connect(self.show_main_menu)
-        self.administracion_menu.show()
-    
-
-    def show_ajustes_menu(self):
-        self.ajustes_menu = AjustesMenu()
-        self.ajustes_menu.switch_back.connect(self.show_main_menu)
-        self.main_menu.close()
-        self.ajustes_menu.show()
-
-
-class LoginWindow(QtWidgets.QMainWindow):
-    switch_main_menu = QtCore.pyqtSignal()
-
+class MainContainer(QtWidgets.QMainWindow):
     def __init__(self):
-        super(LoginWindow, self).__init__()
-        uic.loadUi('design/login.ui', self)
+        super(MainContainer, self).__init__()
+        uic.loadUi(os.path.join('design', 'main_container.ui'), self)
 
-        # connect events
+        # login
         self.acceder_pushbutton.clicked.connect(self.open_main_menu)
+        # dynamic_container
+        self.pager_stackedwidget.addWidget(LiberacionContainer())
+        self.pager_stackedwidget.addWidget(ReportesContainer())
+        self.pager_stackedwidget.addWidget(AdministracionContainer())
+        self.pager_stackedwidget.addWidget(AjustesContainer())
+        # main_menu/side_control 
+        self.informacion_pushbutton.clicked.connect(self.open_informacion)
+        self.liberacion_pushbutton.clicked.connect(self.open_liberacion)
+        self.reportes_pushbutton.clicked.connect(self.open_reportes)
+        self.administracion_pushbutton.clicked.connect(self.open_administracion)
+        self.ajustes_pushbutton.clicked.connect(self.open_ajustes)
 
         self.show()
 
@@ -59,8 +41,8 @@ class LoginWindow(QtWidgets.QMainWindow):
             usuario = UsuarioService.get_by_alias(alias)
             if usuario:
                 if usuario.contrasena == contrasena:
-                    self.switch_main_menu.emit()
-                    self.close()
+                    util.active_user = usuario
+                    self.maincontainer_stackedwidget.setCurrentIndex(1)
                 else:
                     print('Incorrect password')
             else:
@@ -68,86 +50,46 @@ class LoginWindow(QtWidgets.QMainWindow):
         else:
             print('Empty fields')
 
-    
-class MainMenu(QtWidgets.QMainWindow):
-    switch_liberacion = QtCore.pyqtSignal()
-    switch_administracion = QtCore.pyqtSignal()
-    switch_ajustes = QtCore.pyqtSignal()
-    
-    def __init__(self):
-        super(MainMenu, self).__init__()
-        uic.loadUi('design/main_menu.ui', self)
-
-        # connect events
-        self.liberacion_pushbutton.clicked.connect(self.open_liberacion)
-        self.administracion_pushbutton.clicked.connect(self.open_administracion)
-        self.ajustes_pushbutton.clicked.connect(self.open_ajustes)
-        self.salir_pushbutton.clicked.connect(self.exit)
-
-        self.show()
+    def open_informacion(self):
+        self.tittle_label.setText('Información')
+        self.pager_stackedwidget.setCurrentIndex(0)
 
     def open_liberacion(self):
-        self.switch_liberacion.emit()
-        self.close()
+        self.tittle_label.setText('Liberación de Lotes')
+        self.pager_stackedwidget.setCurrentIndex(1)
+
+    def open_reportes(self):
+        self.tittle_label.setText('Reportes')
+        self.pager_stackedwidget.setCurrentIndex(2)
 
     def open_administracion(self):
-        self.switch_administracion.emit()
-        self.close()
+        self.tittle_label.setText('Administración de Datos')
+        self.pager_stackedwidget.setCurrentIndex(3)
 
     def open_ajustes(self):
-        self.switch_ajustes.emit()
-        self.close()
+        self.tittle_label.setText('Ajustes')
+        self.pager_stackedwidget.setCurrentIndex(4)
+    
 
-    def exit(self):
-        sys.exit()
-
-
-class LiberacionMenu(QtWidgets.QMainWindow):
-    switch_back = QtCore.pyqtSignal()
-
+class LiberacionContainer(QtWidgets.QFrame):
     def __init__(self):
-        super(LiberacionMenu, self).__init__()
-        uic.loadUi('design/liberacion_menu.ui', self)
-
-        # connect events
-        self.atras_pushbutton.clicked.connect(self.go_back)
-
-        self.show()
-
-    def go_back(self):
-        self.switch_back.emit()
-        self.close()
+        super(LiberacionContainer, self).__init__()
+        uic.loadUi(os.path.join('design', 'liberacion_container.ui'), self)
 
 
-class AdministracionMenu(QtWidgets.QMainWindow):
-    switch_back = QtCore.pyqtSignal()
-
+class ReportesContainer(QtWidgets.QFrame):
     def __init__(self):
-        super(AdministracionMenu, self).__init__()
-        uic.loadUi('design/administracion_menu.ui', self)
-
-        # connect events
-        self.atras_pushbutton.clicked.connect(self.go_back)
-
-        self.show()
-
-    def go_back(self):
-        self.switch_back.emit()
-        self.close()
+        super(ReportesContainer, self).__init__()
+        uic.loadUi(os.path.join('design', 'reportes_container.ui'), self)
 
 
-class AjustesMenu(QtWidgets.QMainWindow):
-    switch_back = QtCore.pyqtSignal()
-
+class AdministracionContainer(QtWidgets.QFrame):
     def __init__(self):
-        super(AjustesMenu, self).__init__()
-        uic.loadUi('design/ajustes_menu.ui', self)
+        super(AdministracionContainer, self).__init__()
+        uic.loadUi(os.path.join('design', 'administracion_container.ui'), self)
 
-        # connect events
-        self.atras_pushbutton.clicked.connect(self.go_back)
 
-        self.show()
-
-    def go_back(self):
-        self.switch_back.emit()
-        self.close()
+class AjustesContainer(QtWidgets.QFrame):
+    def __init__(self):
+        super(AjustesContainer, self).__init__()
+        uic.loadUi(os.path.join('design', 'ajustes_container.ui'), self)

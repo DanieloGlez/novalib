@@ -1,0 +1,7 @@
+{
+    "db": "bd_liberacion",
+    "db.username": "postgres",
+    "db.password": "postgres",
+    "db.host": "localhost",
+    "db.port": 5432
+}
